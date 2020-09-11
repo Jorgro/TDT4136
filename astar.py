@@ -10,7 +10,6 @@ class Status(Enum):  # currently not used
 class State:
     def __init__(self, coordinates):
         self.coordinates = coordinates
-        self.id = ??
 
     def __eq__(self, other):
         return other.coordinates[0] == self.coordinates[0] and other.coordinates[1] == self.coordinates[1]
@@ -18,70 +17,110 @@ class State:
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __hash__(self):
+        return hash(self.coordinates)
+
+    def __str__(self):
+        return str(self.coordinates)
+
+    def __repr__(self):
+        return str(self.coordinates)
+
 
 class Node:
-    def __init__(self, state, g, h, status):
+    def __init__(self, state):
         self.state = state  # The state property of a search node is a representation of a particular configuration of the problem being solved
-        self.parents = []
         # list of all successor nodes, whether or not this node is currently their best parent.
         self.childs = []
-        self.g = g  # cost of getting to this node
-        self.h = h  # estimated cost to goal
-        self.f = g + h
-        self.status = status  # open or closed
+        # self.g = g  # cost of getting to this node
+        # self.h = h  # estimated cost to goal
+        # self.f = g + h
+        # self.status = status  # open or closed
         self.parent = None  # best parent
 
-    def __ne__(self, other):
-        return True
+        self.g = 0
+        self.h = 0
+        self.f = 0
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    # TODO: Make sure this is correct
     def __eq__(self, other):
-        return True
+        return self.state == other.state and self.g == other.g and self.h == other.h and self.f == other.f
+
+    def __str__(self):
+        return str(self.state)
+
+    def __repr__(self):
+        return f'Coordinates of state: {str(self.state)} g: {self.g} h: {self.h} f: {self.f}'
 
 
 class BestSearchFirst():
-
-    cost = 1
 
     def __init__(self):
         self.open = []  # Sorted by ascending f values, nodes with lot of promise popped early, contains unexpanded nodes
         self.closed = []  # no order, contains expanded nodes
         self.map = Map_Obj()
-        self.nodes = {}
-        self.current_state = tuple(self.map.get_start_pos())
-        print(self.current_state)
-        self.g[self.current_state] = 0
-        self.h[self.current_state] = self.heuretic_function()
-        self.f[self.current_state] = self.g[self.current_state] + \
-            self.h[self.current_state]
-        self.closed.append(self.current_state)
+        self.nodes = []
+        self.goal = State(tuple(self.map.get_goal_pos()))  # for task 1-2
+        self.current_state = State(tuple(self.map.get_start_pos()))
+
+        self.root_node = Node(self.current_state)
+        self.root_node.g = 0
+        self.heuretic_evaluation(self.root_node)
+        self.root_node.f = self.root_node.g + self.root_node.h
+
+        self.open.append(self.root_node)
+
+    def arc_cost(self, p, c):
+        """ This calculates the arc cost between two nodes (parent and child) """
+        return 1
+
+    def propagate_path_improvements(self, p):
+        for c in p.childs:
+            if p.g + self.arc_cost(p, c) < c.g:
+                c.parent = p
+                c.g = p.g + self.arc_cost(p, c)
+                c.f = c.g + c.h
+                self.propagate_path_improvements(c)
 
     def agenda_loop(self):
         """ Agenda loop """
 
         solution = False
-
-        while not solution:
-            if not open:
+        iterations = 0
+        while not solution and iterations < 20:
+            if not self.open:
+                print("Something definitely went wrong!")
                 return False
             x = self.open.pop()
+            print("Expanding: ", x)
+            print("open: ", self.open)
+            print("closed: ", self.closed)
+            self.map.show_map()
             self.closed.append(x)
 
             if self.check_solution(x):
                 solution = True
             else:
-                successors = self.generate_successor_states(x)
+                successors = self.generate_successor_nodes(x)
                 in_open = False
                 in_closed = False
+                #print("Going through successors")
+                #print("Open", self.open)
+                #print("Closed", self.closed)
+
                 for s in successors:
+                    print(s)
                     if s in self.open:
                         in_open = True
                         s_star = self.open[self.open.index(s)]
                         if s.state == s_star.state:
                             s = s_star
-
                     elif s in self.closed:
                         in_closed = True
-                        s_star = self.open[self.open.index(s)]
+                        s_star = self.closed[self.closed.index(s)]
                         if s.state == s_star.state:
                             s = s_star
                     x.childs.append(s)
@@ -90,50 +129,57 @@ class BestSearchFirst():
                         self.open.append(s)
                         self.open = sorted(
                             self.open, key=lambda val: val.f, reverse=True)
-                            print(self.open)
-                    elif:
+                        #print("Sorted open", self.open)
+                    elif x.g + self.arc_cost(x, s) < s.g:  # found cheaper path to s
+                        self.attach_and_eval(s, x)
+                        if in_closed:
+                            self.propagate_path_improvements(s)
 
-    def propagate_path_improvements(p):
-        for c in p.childs:
-            if p.g + arc_cost(p, c) < c.g:
-                c.parent = p
-                c.g = p.g + arc_cost(p, c)
-                c.f = c.g + c.h
-                propagate_path_improvements(c)
+            iterations += 1
+        return solution
 
     def create_state_identifier(state):
         return None
 
-    def attach_and_eval(self, child, parent):
+    def attach_and_eval(self, c, p):
         """ simply attaches a child node to a node that is now considered its best parent (so far) """
-        child.parent = parent
-        c.g = p.g + self.arc_cost(parent, child)
+        c.parent = p
+        c.g = p.g + self.arc_cost(p, c)
         self.heuretic_evaluation(c)
         c.f = c.g + c.h
 
-    def arc_cost(p, c):
-        """ This calculates the arc cost between two nodes (parent and child) """
-        return 1
-   def generate_successor_states(self, node):
+    def generate_successor_nodes(self, node):
         """ Given a node in the search tree this generates all possible succesor states to the node's state """
-        return True
+        directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+        successor_nodes = []
+
+        for i in directions:
+            x = node.state.coordinates[0]+i[0]
+            y = node.state.coordinates[1]+i[1]
+            print(self.map.get_cell_value((x, y)))
+            if self.map.get_cell_value((x, y)) == 1:
+                state = State((x, y))
+                child = Node(state)
+                self.heuretic_evaluation(child)
+                child.g = node.g + self.arc_cost(node, child)
+                child.f = child.g + child.h
+                successor_nodes.append(child)
+                self.nodes.append(child)
+        return successor_nodes
 
     def heuretic_evaluation(self, node):
-        """ Gives a heuretic evaluation of the distance to the goal  """
+        """ Gives a heuretic evaluation of the distance to the goal using manhattan distance  """
+        heuretic = abs(self.goal.coordinates[0]-node.state.coordinates[0]) + abs(
+            self.goal.coordinates[1]-node.state.coordinates[1])
+        print("Heuretic evaluation: ", heuretic)
+        node.h = heuretic
+        return heuretic
 
-        node.h = 1
-        return 1
-
-    def check_solution(self):
+    def check_solution(self, node):
         """ Compares the state of the nodes to the goal state """
-        return True
-
-    def create_root_node(self):
-        """ This creates the initial search state and incorporates it into a node
-object that becomes the root of the search tree """
-        return True
+        return node.state == self.goal
 
 
 if __name__ == "__main__":
     astar = BestSearchFirst()
-    print(astar.f)
+    print(astar.agenda_loop())
