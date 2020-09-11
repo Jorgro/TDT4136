@@ -1,12 +1,14 @@
+from PIL import Image
+import time
+import pandas as pd
 import numpy as np
 np.set_printoptions(threshold=np.inf, linewidth=300)
-import pandas as pd
-import time
-from PIL import Image
+
 
 class Map_Obj():
     def __init__(self, task=1):
-        self.start_pos, self.goal_pos, self.end_goal_pos, self.path_to_map = self.fill_critical_positions(task)
+        self.start_pos, self.goal_pos, self.end_goal_pos, self.path_to_map = self.fill_critical_positions(
+            task)
         self.int_map, self.str_map = self.read_map(self.path_to_map)
         self.tmp_cell_value = self.get_cell_value(self.goal_pos)
         self.set_cell_value(self.start_pos, ' S ')
@@ -23,7 +25,8 @@ class Map_Obj():
         :return: the integer map and string map
         """
         # Read map from provided csv file
-        df = pd.read_csv(path, index_col=None, header=None)#,error_bad_lines=False)
+        # ,error_bad_lines=False)
+        df = pd.read_csv(path, index_col=None, header=None)
         # Convert pandas dataframe to numpy array
         data = df.values
         # Convert numpy array to string to make it more human readable
@@ -69,7 +72,6 @@ class Map_Obj():
             end_goal_pos = [6, 7]
             path_to_map = 'Samfundet_map_2.csv'
 
-
         return start_pos, goal_pos, end_goal_pos, path_to_map
 
     def get_cell_value(self, pos):
@@ -101,7 +103,7 @@ class Map_Obj():
         self.goal_pos = [pos[0], pos[1]]
         self.replace_map_values(tmp_pos, tmp_val, self.goal_pos)
 
-    def set_cell_value(self, pos, value, str_map = True):
+    def set_cell_value(self, pos, value, str_map=True):
         if str_map:
             self.str_map[pos[0], pos[1]] = value
         else:
@@ -111,7 +113,6 @@ class Map_Obj():
         # For every column in provided map, print it
         for column in map_to_print:
             print(column)
-
 
     def pick_move(self):
         """
@@ -149,7 +150,6 @@ class Map_Obj():
         self.str_map[pos[0]][pos[1]] = str_value
         self.str_map[goal_pos[0], goal_pos[1]] = ' G '
 
-
     def tick(self):
         """
         Moves the current goal position every 4th call if current goal position is not already at the end_goal position.
@@ -167,17 +167,17 @@ class Map_Obj():
                 # Move current goal position
                 move = self.pick_move()
                 self.move_goal_pos(move)
-                #print(self.goal_pos)
-        self.tick_counter +=1
+                # print(self.goal_pos)
+        self.tick_counter += 1
 
         return self.goal_pos
-
 
     def set_start_pos_str_marker(self, start_pos, map):
         # Attempt to set the start position on the map
         if self.int_map[start_pos[0]][start_pos[1]] == -1:
             self.print_map(self.str_map)
-            print('The selected start position, '+str(start_pos) + ' is not a valid position on the current map.')
+            print('The selected start position, '+str(start_pos) +
+                  ' is not a valid position on the current map.')
             exit()
         else:
             map[start_pos[0]][start_pos[1]] = ' S '
@@ -186,7 +186,8 @@ class Map_Obj():
         # Attempt to set the goal position on the map
         if self.int_map[goal_pos[0]][goal_pos[1]] == -1:
             self.print_map(self.str_map)
-            print('The selected goal position, '+ str(goal_pos) + ' is not a valid position on the current map.')
+            print('The selected goal position, ' + str(goal_pos) +
+                  ' is not a valid position on the current map.')
             exit()
         else:
             map[goal_pos[0]][goal_pos[1]] = ' G '
@@ -211,7 +212,8 @@ class Map_Obj():
         # Define scale of the image
         scale = 20
         # Create an all-yellow image
-        image = Image.new('RGB', (width * scale, height * scale), (255, 255, 0))
+        image = Image.new(
+            'RGB', (width * scale, height * scale), (255, 255, 0))
         # Load image
         pixels = image.load()
 
@@ -222,10 +224,16 @@ class Map_Obj():
         # Go through image and set pixel color for every position
         for y in range(height):
             for x in range(width):
-                if map[y][x] not in colors: continue
+                if map[y][x] not in colors:
+                    continue
                 for i in range(scale):
                     for j in range(scale):
-                        pixels[x * scale + i, y * scale + j] = colors[map[y][x]]
+                        pixels[x * scale + i, y *
+                               scale + j] = colors[map[y][x]]
         # Show image
         image.show()
 
+
+if __name__ == "__main__":
+    map = Map_Obj()
+    map.show_map()
