@@ -1,6 +1,8 @@
 from Map import Map_Obj
 from enum import Enum
 
+cost = {' . '}
+
 
 class Status(Enum):  # currently not used
     OPEN = 1
@@ -15,6 +17,8 @@ class State:
         return other.coordinates[0] == self.coordinates[0] and other.coordinates[1] == self.coordinates[1]
 
     def __ne__(self, other):
+        if (other == None):
+            return True
         return not self.__eq__(other)
 
     def __hash__(self):
@@ -43,6 +47,8 @@ class Node:
         self.f = 0
 
     def __ne__(self, other):
+        if (other == None):
+            return True
         return not self.__eq__(other)
 
     # TODO: Make sure this is correct
@@ -58,10 +64,10 @@ class Node:
 
 class BestSearchFirst():
 
-    def __init__(self):
+    def __init__(self, task=1):
         self.open = []  # Sorted by ascending f values, nodes with lot of promise popped early, contains unexpanded nodes
         self.closed = []  # no order, contains expanded nodes
-        self.map = Map_Obj()
+        self.map = Map_Obj(task)
         self.nodes = []
         self.goal = State(tuple(self.map.get_goal_pos()))  # for task 1-2
         self.current_state = State(tuple(self.map.get_start_pos()))
@@ -72,10 +78,11 @@ class BestSearchFirst():
         self.root_node.f = self.root_node.g + self.root_node.h
 
         self.open.append(self.root_node)
+        self.solution_node = None
 
     def arc_cost(self, p, c):
         """ This calculates the arc cost between two nodes (parent and child) """
-        return 1
+        return self.map.get_cell_value(c.state.coordinates)
 
     def propagate_path_improvements(self, p):
         for c in p.childs:
@@ -90,29 +97,22 @@ class BestSearchFirst():
 
         solution = False
         iterations = 0
-        while not solution and iterations < 20:
+        while not solution:
             if not self.open:
                 print("Something definitely went wrong!")
                 return False
             x = self.open.pop()
-            print("Expanding: ", x)
-            print("open: ", self.open)
-            print("closed: ", self.closed)
-            self.map.show_map()
             self.closed.append(x)
-
+            solution_state = None
             if self.check_solution(x):
                 solution = True
+                self.solution_node = x
             else:
                 successors = self.generate_successor_nodes(x)
-                in_open = False
-                in_closed = False
-                #print("Going through successors")
-                #print("Open", self.open)
-                #print("Closed", self.closed)
 
                 for s in successors:
-                    print(s)
+                    in_open = False
+                    in_closed = False
                     if s in self.open:
                         in_open = True
                         s_star = self.open[self.open.index(s)]
@@ -129,14 +129,13 @@ class BestSearchFirst():
                         self.open.append(s)
                         self.open = sorted(
                             self.open, key=lambda val: val.f, reverse=True)
-                        #print("Sorted open", self.open)
                     elif x.g + self.arc_cost(x, s) < s.g:  # found cheaper path to s
                         self.attach_and_eval(s, x)
                         if in_closed:
                             self.propagate_path_improvements(s)
 
             iterations += 1
-        return solution
+        return solution, solution_state
 
     def create_state_identifier(state):
         return None
@@ -156,8 +155,8 @@ class BestSearchFirst():
         for i in directions:
             x = node.state.coordinates[0]+i[0]
             y = node.state.coordinates[1]+i[1]
-            print(self.map.get_cell_value((x, y)))
-            if self.map.get_cell_value((x, y)) == 1:
+            value = self.map.get_cell_value((x, y))
+            if value != -1:
                 state = State((x, y))
                 child = Node(state)
                 self.heuretic_evaluation(child)
@@ -171,7 +170,6 @@ class BestSearchFirst():
         """ Gives a heuretic evaluation of the distance to the goal using manhattan distance  """
         heuretic = abs(self.goal.coordinates[0]-node.state.coordinates[0]) + abs(
             self.goal.coordinates[1]-node.state.coordinates[1])
-        print("Heuretic evaluation: ", heuretic)
         node.h = heuretic
         return heuretic
 
@@ -179,7 +177,23 @@ class BestSearchFirst():
         """ Compares the state of the nodes to the goal state """
         return node.state == self.goal
 
+    def print_solution(self):
+        child = self.solution_node
+        parent = self.solution_node.parent
+        solution_list = [self.solution_node.state.coordinates]
+
+        print(self.solution_node)
+        while parent != None:
+            solution_list.append(parent.state.coordinates)
+            print(parent)
+            child = parent
+            parent = child.parent
+        self.map.show_solution(solution_list)
+
 
 if __name__ == "__main__":
-    astar = BestSearchFirst()
-    print(astar.agenda_loop())
+    astar = BestSearchFirst(4)
+    found_solution, solution = astar.agenda_loop()
+    # astar.map.print_map()
+    print(found_solution)
+    astar.print_solution()

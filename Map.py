@@ -109,10 +109,10 @@ class Map_Obj():
         else:
             self.int_map[pos[0], pos[1]] = value
 
-    def print_map(self, map_to_print):
+    """ def print_map(self):
         # For every column in provided map, print it
-        for column in map_to_print:
-            print(column)
+        for column in list(self.str_map):
+            print(column.join("")) """
 
     def pick_move(self):
         """
@@ -220,7 +220,7 @@ class Map_Obj():
         # Define what colors to give to different values of the string map (undefined values will remain yellow, this is
         # how the yellow path is painted)
         colors = {' # ': (255, 0, 0), ' . ': (215, 215, 215), ' , ': (166, 166, 166), ' : ': (96, 96, 96),
-                  ' ; ': (36, 36, 36), ' S ': (255, 0, 255), ' G ': (0, 128, 255)}
+                  ' ; ': (36, 36, 36), ' S ': (255, 0, 255), ' G ': (0, 128, 255), ' - ': (0, 255, 0)}
         # Go through image and set pixel color for every position
         for y in range(height):
             for x in range(width):
@@ -233,7 +233,13 @@ class Map_Obj():
         # Show image
         image.show()
 
+    def show_solution(self, solution):
+        # print(self.str_map)
+        for coords in solution:
+            self.str_map[coords[0]][coords[1]] = " - "
+        self.show_map()
+
 
 if __name__ == "__main__":
-    map = Map_Obj()
+    map = Map_Obj(3)
     map.show_map()
