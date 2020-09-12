@@ -62,7 +62,7 @@ class Node:
         return f'Coordinates of state: {str(self.state)} g: {self.g} h: {self.h} f: {self.f}'
 
 
-class BestSearchFirst():
+class BestSearchFirst:
 
     def __init__(self, task=1):
         self.open = []  # Sorted by ascending f values, nodes with lot of promise popped early, contains unexpanded nodes
