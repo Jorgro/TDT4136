@@ -182,10 +182,8 @@ class BestSearchFirst():
         parent = self.solution_node.parent
         solution_list = [self.solution_node.state.coordinates]
 
-        print(self.solution_node)
         while parent != None:
             solution_list.append(parent.state.coordinates)
-            print(parent)
             child = parent
             parent = child.parent
         self.map.show_solution(solution_list)
@@ -194,6 +192,4 @@ class BestSearchFirst():
 if __name__ == "__main__":
     astar = BestSearchFirst(4)
     found_solution, solution = astar.agenda_loop()
-    # astar.map.print_map()
-    print(found_solution)
     astar.print_solution()
