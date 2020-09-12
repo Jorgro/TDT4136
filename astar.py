@@ -102,7 +102,6 @@ class BestSearchFirst:
         """ Agenda loop """
 
         solution = False
-        iterations = 0
         while not solution:
             if not self.open:
                 # in these tasks with obvious solutions something must be wrong with the implementation
@@ -146,7 +145,6 @@ class BestSearchFirst:
                             # propagate the improved path to s through all of s children (and their children)
                             self.propagate_path_improvements(s)
 
-            iterations += 1
         return solution, solution_state
 
     def attach_and_eval(self, c, p):
