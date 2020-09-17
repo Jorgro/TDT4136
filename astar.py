@@ -100,9 +100,10 @@ class BestSearchFirst:
 
     def agenda_loop(self):
         """ Agenda loop """
-
+        it = 0
         solution = False
         while not solution:
+            it += 1
             if not self.open:
                 # in these tasks with obvious solutions something must be wrong with the implementation
                 print("Something definitely went wrong!")
@@ -137,14 +138,16 @@ class BestSearchFirst:
                         self.attach_and_eval(s, x)
                         self.open.append(s)  # we will expand this node later
                         self.open = sorted(
-                            self.open, key=lambda val: val.f, reverse=True)  # sorting open list in descending based on f value, pop function takes from the back of the list
+                            self.open, key=lambda val: val.f, reverse=True)
+                        # sorting open list in descending based on f value, pop function takes from the back of the list
+                        print(len(self.open))
                     elif x.g + self.arc_cost(x, s) < s.g:  # found cheaper path to s
                         # attaches s to a new parent x
                         self.attach_and_eval(s, x)
                         if in_closed:
                             # propagate the improved path to s through all of s children (and their children)
                             self.propagate_path_improvements(s)
-
+        print("iter", it)
         return solution, solution_state
 
     def attach_and_eval(self, c, p):
@@ -154,6 +157,7 @@ class BestSearchFirst:
         self.heuretic_evaluation(c)
         c.f = c.g + c.h
 
+    # This should be changed
     def generate_successor_nodes(self, node):
         """ Given a node in the search tree this generates all possible succesor states to the node's state """
         directions = [(1, 0), (-1, 0), (0, 1), (0, -1)
@@ -198,7 +202,7 @@ class BestSearchFirst:
 
 
 if __name__ == "__main__":
-    task = 4
+    task = 1
     astar = BestSearchFirst(task)
     found_solution, solution = astar.agenda_loop()
     astar.print_solution()
