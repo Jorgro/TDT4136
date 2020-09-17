@@ -65,6 +65,8 @@ class Node:
 class BestSearchFirst:
 
     def __init__(self, task=1):
+        self.state_dictionary = {}
+
         self.open = []  # Sorted by ascending f values, nodes with lot of promise popped early, contains unexpanded nodes
         self.closed = []  # no order, contains expanded nodes
         self.map = Map_Obj(task)  # the map
@@ -157,7 +159,7 @@ class BestSearchFirst:
         self.heuretic_evaluation(c)
         c.f = c.g + c.h
 
-    # This should be changed
+    # This should be changed, need to have a dictionary from coordinates to State
     def generate_successor_nodes(self, node):
         """ Given a node in the search tree this generates all possible succesor states to the node's state """
         directions = [(1, 0), (-1, 0), (0, 1), (0, -1)
@@ -167,14 +169,20 @@ class BestSearchFirst:
         for i in directions:
             x = node.state.coordinates[0]+i[0]
             y = node.state.coordinates[1]+i[1]
-            value = self.map.get_cell_value((x, y))
-            if value != -1:  # if it isn't a wall we will add the new node and state to the successors
-                state = State((x, y))
-                child = Node(state)
-                self.heuretic_evaluation(child)
-                child.g = node.g + self.arc_cost(node, child)
-                child.f = child.g + child.h
-                successor_nodes.append(child)
+            if tuple((x, y)) in self.state_dictionary:
+                successor_nodes.append(
+                    self.state_dictionary.get(tuple((x, y))))
+                print("oki")
+            else:
+                value = self.map.get_cell_value((x, y))
+                if value != -1:  # if it isn't a wall we will add the new node and state to the successors
+                    state = State((x, y))
+                    child = Node(state)
+                    self.state_dictionary[tuple((x, y))] = child
+                    self.heuretic_evaluation(child)
+                    child.g = node.g + self.arc_cost(node, child)
+                    child.f = child.g + child.h
+                    successor_nodes.append(child)
         return successor_nodes
 
     def heuretic_evaluation(self, node):
