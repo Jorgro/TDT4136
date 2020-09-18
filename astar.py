@@ -142,14 +142,12 @@ class BestSearchFirst:
                         self.open = sorted(
                             self.open, key=lambda val: val.f, reverse=True)
                         # sorting open list in descending based on f value, pop function takes from the back of the list
-                        print(len(self.open))
                     elif x.g + self.arc_cost(x, s) < s.g:  # found cheaper path to s
                         # attaches s to a new parent x
                         self.attach_and_eval(s, x)
                         if in_closed:
                             # propagate the improved path to s through all of s children (and their children)
                             self.propagate_path_improvements(s)
-        print("iter", it)
         return solution, solution_state
 
     def attach_and_eval(self, c, p):
@@ -172,7 +170,6 @@ class BestSearchFirst:
             if tuple((x, y)) in self.state_dictionary:
                 successor_nodes.append(
                     self.state_dictionary.get(tuple((x, y))))
-                print("oki")
             else:
                 value = self.map.get_cell_value((x, y))
                 if value != -1:  # if it isn't a wall we will add the new node and state to the successors
@@ -210,7 +207,7 @@ class BestSearchFirst:
 
 
 if __name__ == "__main__":
-    task = 1
+    task = 4
     astar = BestSearchFirst(task)
     found_solution, solution = astar.agenda_loop()
     astar.print_solution()
