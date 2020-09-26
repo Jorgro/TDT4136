@@ -147,6 +147,12 @@ class MinimaxAgent(MultiAgentSearchAgent):
         
         return self.minimax(gameState, 0, 0)[1]
 
+    """ 
+        The minimax function returns the best value and action for PacMan with given the depth limit.
+        It utilises the minValue and maxValue to calculate the values 
+        depending on wheter the current agent is packman (max) or a ghost (min).
+        minimax is called recursively by both minValue and maxValue.
+    """
     def minimax(self, state, depth, agentNo):
         
         # If new ply, set agentNo to 0 (packman) and increase depth         
@@ -159,14 +165,20 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
 
 
-
+    """
+        CoutoffTest checks if the recursion has reached a certain depth 
+        or if the state is in a finsished state
+    """
     def cutoffTest(self, state, currentDepth):
         return currentDepth >=  self.depth or state.isWin() or state.isLose()
 
+    """
+        MaxValue returns the value and action for the max agent (Pacman) by using minimax recursively 
+    """
     def maxValue(self, state, d, agentNo):
-        actions = state.getLegalActions(0) 
+        actions = state.getLegalActions(0) # Available actions for Pacman
         
-        currentBestAct = None #actions[0]
+        currentBestAct = 'WEST' # initialize a variable used for remembering the best action
         value = -math.inf
         
         for a in actions:
