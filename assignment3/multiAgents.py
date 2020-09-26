@@ -144,42 +144,52 @@ class MinimaxAgent(MultiAgentSearchAgent):
         """
         "*** YOUR CODE HERE ***"
 
-        actions = gameState.getLegalActions(0)
-        m = self.maxValue(gameState, 0,
-                          actions[1])
-        # print(self.maxValue(gameState, 0,
-        #                    actions[0]), self.minValue(gameState, 0, actions[0]))
+        
+        # m = self.minimax(gameState, 0, 0)
+        return self.minimax(gameState, 0, 0)[1]
 
-        return m[1]
+    def minimax(self, state, depth, agentNo):
+        
+        # If new ply, set agentNo to 0 (packman) and increase depth         
+        a, d = [agentNo, depth] if (agentNo < state.getNumAgents()) else [0, depth+1] 
+        
+        #print("Agent", a, end="  ")
+        #print("Depth", d)
+        
+        if self.cutoffTest(state, d):
+            return [self.evaluationFunction(state)]   
+        
+        return self.minValue(state, d, a) if a else self.maxValue(state, d, a)
+
+
+
 
     def cutoffTest(self, state, currentDepth):
+        return currentDepth >=  self.depth or state.isWin() or state.isLose()
 
-        return currentDepth > self.depth or state.isWin() or state.isLose()
-
-    def maxValue(self, state, d, action=None):
-        currentBestAct = action
-        if (self.cutoffTest(state, d)):
-            return self.evaluationFunction(state), action
+    def maxValue(self, state, d, agentNo):
+        actions = state.getLegalActions(0) 
+        
+        currentBestAct = None #actions[0]
         value = -math.inf
-        for a in state.getLegalActions(0):
-            newValue = max(value, self.minValue(
-                state.generateSuccessor(0, a), d+1, action))
-            if (value < newValue):
+        
+        for a in actions:
+            newValue = self.minimax(
+                state.generateSuccessor(0, a), d, agentNo+1)[0]            
+            if (value <= newValue):
                 value = newValue
-                if d == 0:
-                    currentBestAct = a
-
+                #if d == 0:
+                currentBestAct = a
         return [value, currentBestAct]
 
-    def minValue(self, state, d, action):
-        if (self.cutoffTest(state, d)):
-            return self.evaluationFunction(state)
+
+    def minValue(self, state, d, agentNo):
         value = math.inf
-        for i in range(1, state.getNumAgents()):
-            for a in state.getLegalActions(i):
-                value = min(value, self.maxValue(
-                    state.generateSuccessor(i, a), d+1, action)[0])
-        return value
+        for a in state.getLegalActions(agentNo):
+            value = min(value, self.minimax(
+                state.generateSuccessor(agentNo, a), d, agentNo+1)[0])
+        return [value]
+        
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
