@@ -145,16 +145,12 @@ class MinimaxAgent(MultiAgentSearchAgent):
         "*** YOUR CODE HERE ***"
 
         
-        # m = self.minimax(gameState, 0, 0)
         return self.minimax(gameState, 0, 0)[1]
 
     def minimax(self, state, depth, agentNo):
         
         # If new ply, set agentNo to 0 (packman) and increase depth         
         a, d = [agentNo, depth] if (agentNo < state.getNumAgents()) else [0, depth+1] 
-        
-        #print("Agent", a, end="  ")
-        #print("Depth", d)
         
         if self.cutoffTest(state, d):
             return [self.evaluationFunction(state)]   
@@ -178,7 +174,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 state.generateSuccessor(0, a), d, agentNo+1)[0]            
             if (value <= newValue):
                 value = newValue
-                #if d == 0:
                 currentBestAct = a
         return [value, currentBestAct]
 
@@ -208,10 +203,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         
         # If new ply, set agentNo to 0 (packman) and increase depth         
         a, d = [agentNo, depth] if (agentNo < state.getNumAgents()) else [0, depth+1] 
-        
-        #print("Agent", a, end="  ")
-        #print("Depth", d)
-        
+                       
         if self.cutoffTest(state, d):
             return [self.evaluationFunction(state)]   
         
@@ -266,9 +258,46 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.expectimax(gameState, 0, 0)[1]
+
+    def expectimax(self, state, depth, agentNo):
+        
+        # If new ply, set agentNo to 0 (packman) and increase depth         
+        a, d = [agentNo, depth] if (agentNo < state.getNumAgents()) else [0, depth+1] 
+                
+        if self.cutoffTest(state, d):
+            return [self.evaluationFunction(state)]   
+        
+        return self.minValue(state, d, a) if a else self.maxValue(state, d, a)
 
 
+
+
+    def cutoffTest(self, state, currentDepth):
+        return currentDepth >=  self.depth or state.isWin() or state.isLose()
+
+    def maxValue(self, state, d, agentNo):
+        actions = state.getLegalActions(0) 
+        
+        currentBestAct = None
+        value = -math.inf
+        
+        for a in actions:
+            newValue = self.expectimax(
+                state.generateSuccessor(0, a), d, agentNo+1)[0]            
+            if (value <= newValue):
+                value = newValue
+                currentBestAct = a
+        return [value, currentBestAct]
+
+
+    def minValue(self, state, d, agentNo):
+        value = math.inf
+        actions = state.getLegalActions(agentNo)
+        value = min(value, self.expectimax(
+            state.generateSuccessor(agentNo, actions[random.randint(0, len(actions)-1)]), d, agentNo+1)[0])
+        return [value]
+    
 def betterEvaluationFunction(currentGameState):
     """
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
