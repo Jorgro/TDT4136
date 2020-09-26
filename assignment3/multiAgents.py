@@ -202,8 +202,56 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.alphaBeta(gameState, 0, 0, -math.inf, math.inf)[1]
+    
+    def alphaBeta(self, state, depth, agentNo, alpha, beta):
+        
+        # If new ply, set agentNo to 0 (packman) and increase depth         
+        a, d = [agentNo, depth] if (agentNo < state.getNumAgents()) else [0, depth+1] 
+        
+        #print("Agent", a, end="  ")
+        #print("Depth", d)
+        
+        if self.cutoffTest(state, d):
+            return [self.evaluationFunction(state)]   
+        
+        return self.minValue(state, d, a, alpha, beta) if a else self.maxValue(state, d, a, alpha, beta)
 
+
+
+
+    def cutoffTest(self, state, currentDepth):
+        return currentDepth >=  self.depth or state.isWin() or state.isLose()
+
+    def maxValue(self, state, d, agentNo, alpha, beta):
+        actions = state.getLegalActions(0) 
+        
+        currentBestAct = None #actions[0]
+        value = -math.inf
+        
+        for a in actions:
+            newValue = self.alphaBeta(
+                state.generateSuccessor(0, a), d, agentNo+1, alpha, beta)[0]            
+            if (value <= newValue):
+                value = newValue
+                #if d == 0:
+                currentBestAct = a
+            if value > beta:
+                return [value, currentBestAct]
+            alpha = max(alpha, value)
+
+        return [value, currentBestAct]
+
+
+    def minValue(self, state, d, agentNo, alpha, beta):
+        value = math.inf
+        for a in state.getLegalActions(agentNo):
+            value = min(value, self.alphaBeta(
+                state.generateSuccessor(agentNo, a), d, agentNo+1, alpha, beta)[0])
+            if value < alpha:
+                return [value]
+            beta = min(beta, value)
+        return [value]
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
