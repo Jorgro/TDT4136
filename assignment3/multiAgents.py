@@ -144,59 +144,60 @@ class MinimaxAgent(MultiAgentSearchAgent):
         """
         "*** YOUR CODE HERE ***"
 
-        
         return self.minimax(gameState, 0, 0)[1]
 
-    """ 
+    """
         The minimax function returns the best value and action for PacMan with given the depth limit.
-        It utilises the minValue and maxValue to calculate the values 
+        It utilises the minValue and maxValue to calculate the values
         depending on wheter the current agent is packman (max) or a ghost (min).
         minimax is called recursively by both minValue and maxValue.
     """
+
     def minimax(self, state, depth, agentNo):
-        
-        # If new ply, set agentNo to 0 (packman) and increase depth         
-        a, d = [agentNo, depth] if (agentNo < state.getNumAgents()) else [0, depth+1] 
-        
+
+        # If new ply, set agentNo to 0 (packman) and increase depth
+        a, d = [agentNo, depth] if (
+            agentNo < state.getNumAgents()) else [0, depth+1]
+
         if self.cutoffTest(state, d):
-            return [self.evaluationFunction(state)]   
-        
+            return [self.evaluationFunction(state)]
+
         return self.minValue(state, d, a) if a else self.maxValue(state, d, a)
 
-
-
     """
-        CoutoffTest checks if the recursion has reached a certain depth 
+        CoutoffTest checks if the recursion has reached a certain depth
         or if the state is in a finsished state
     """
+
     def cutoffTest(self, state, currentDepth):
-        return currentDepth >=  self.depth or state.isWin() or state.isLose()
+        return currentDepth >= self.depth or state.isWin() or state.isLose()
 
     """
-        MaxValue returns the value and action for the max agent (Pacman) by using minimax recursively 
+        MaxValue returns the value and action for the max agent (Pacman) by using minimax recursively
     """
+
     def maxValue(self, state, d, agentNo):
-        actions = state.getLegalActions(0) # Available actions for Pacman
-        
-        currentBestAct = 'WEST' # initialize a variable used for remembering the best action
+        actions = state.getLegalActions(0)  # Available actions for Pacman
+
+        currentBestAct = 'WEST'  # initialize a variable used for remembering the best action
         value = -math.inf
-        
+
         for a in actions:
             newValue = self.minimax(
-                state.generateSuccessor(0, a), d, agentNo+1)[0]            
+                state.generateSuccessor(0, a), d, agentNo+1)[0]
             if (value <= newValue):
                 value = newValue
                 currentBestAct = a
         return [value, currentBestAct]
 
-
     def minValue(self, state, d, agentNo):
+        actions = state.getLegalActions(agentNo)
+
         value = math.inf
-        for a in state.getLegalActions(agentNo):
+        for a in actions:
             value = min(value, self.minimax(
                 state.generateSuccessor(agentNo, a), d, agentNo+1)[0])
         return [value]
-        
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
@@ -204,41 +205,62 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     Your minimax agent with alpha-beta pruning (question 3)
     """
 
+    def __init__(self, evalFn='scoreEvaluationFunction', depth='2'):
+        super().__init__(evalFn, depth)
+        self.cache = {}  # used to save a certain state so we don't calculate twice
+
     def getAction(self, gameState):
         """
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
         return self.alphaBeta(gameState, 0, 0, -math.inf, math.inf)[1]
-    
+
     def alphaBeta(self, state, depth, agentNo, alpha, beta):
-        
-        # If new ply, set agentNo to 0 (packman) and increase depth         
-        a, d = [agentNo, depth] if (agentNo < state.getNumAgents()) else [0, depth+1] 
-                       
+
+        # check if the state has already been calculated
+        if tuple((state, depth, agentNo)) in self.cache:
+            return self.cache[tuple((state, depth, agentNo))]
+
+        # If new ply, set agentNo to 0 (packman) and increase depth
+        a, d = [agentNo, depth] if (
+            agentNo < state.getNumAgents()) else [0, depth+1]
+
         if self.cutoffTest(state, d):
-            return [self.evaluationFunction(state)]   
-        
-        return self.minValue(state, d, a, alpha, beta) if a else self.maxValue(state, d, a, alpha, beta)
-
-
-
+            return [self.evaluationFunction(state)]
+        # What about transition tables?
+        if a:
+            val = self.minValue(state, d, a, alpha, beta)
+            # save the state for later so we don't need to recalculate
+            self.cache[tuple((state, d, a))] = val
+            return val
+        val = self.maxValue(state, d, a, alpha, beta)
+        self.cache[tuple((state, d, a))] = val
+        return self.maxValue(state, d, a, alpha, beta)
 
     def cutoffTest(self, state, currentDepth):
-        return currentDepth >=  self.depth or state.isWin() or state.isLose()
+        return currentDepth >= self.depth or state.isWin() or state.isLose()
 
     def maxValue(self, state, d, agentNo, alpha, beta):
-        actions = state.getLegalActions(0) 
-        
-        currentBestAct = None #actions[0]
+        actions = state.getLegalActions(0)
+
+        currentBestAct = None  # actions[0]
         value = -math.inf
-        
-        for a in actions:
+
+        # dynamic move ordering with shallow search
+        ordered_moves = []
+        for a in state.getLegalActions(agentNo):
+            ordered_moves.append((a, self.evaluationFunction(
+                state.generateSuccessor(agentNo, a))))
+        ordered_moves.sort(reverse=True, key=lambda x: x[1])  # sort descending
+
+        for val in ordered_moves:
+            a = val[0]
             newValue = self.alphaBeta(
-                state.generateSuccessor(0, a), d, agentNo+1, alpha, beta)[0]            
+                state.generateSuccessor(0, a), d, agentNo+1, alpha, beta)[0]
             if (value <= newValue):
                 value = newValue
-                #if d == 0:
+                # if d == 0:
                 currentBestAct = a
             if value > beta:
                 return [value, currentBestAct]
@@ -246,16 +268,26 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
         return [value, currentBestAct]
 
-
     def minValue(self, state, d, agentNo, alpha, beta):
         value = math.inf
+        # can do move ordering here? this is bad pruning
+
+        # dynamic move ordering with shallow search
+        ordered_moves = []
         for a in state.getLegalActions(agentNo):
+            ordered_moves.append((a, self.evaluationFunction(
+                state.generateSuccessor(agentNo, a))))
+        ordered_moves.sort(key=lambda x: x[1])  # sort ascending
+
+        for val in ordered_moves:
+            a = val[0]
             value = min(value, self.alphaBeta(
                 state.generateSuccessor(agentNo, a), d, agentNo+1, alpha, beta)[0])
             if value < alpha:
                 return [value]
             beta = min(beta, value)
         return [value]
+
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
@@ -273,35 +305,32 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         return self.expectimax(gameState, 0, 0)[1]
 
     def expectimax(self, state, depth, agentNo):
-        
-        # If new ply, set agentNo to 0 (packman) and increase depth         
-        a, d = [agentNo, depth] if (agentNo < state.getNumAgents()) else [0, depth+1] 
-                
+
+        # If new ply, set agentNo to 0 (packman) and increase depth
+        a, d = [agentNo, depth] if (
+            agentNo < state.getNumAgents()) else [0, depth+1]
+
         if self.cutoffTest(state, d):
-            return [self.evaluationFunction(state)]   
-        
+            return [self.evaluationFunction(state)]
+
         return self.minValue(state, d, a) if a else self.maxValue(state, d, a)
 
-
-
-
     def cutoffTest(self, state, currentDepth):
-        return currentDepth >=  self.depth or state.isWin() or state.isLose()
+        return currentDepth >= self.depth or state.isWin() or state.isLose()
 
     def maxValue(self, state, d, agentNo):
-        actions = state.getLegalActions(0) 
-        
+        actions = state.getLegalActions(0)
+
         currentBestAct = None
         value = -math.inf
-        
+
         for a in actions:
             newValue = self.expectimax(
-                state.generateSuccessor(0, a), d, agentNo+1)[0]            
+                state.generateSuccessor(0, a), d, agentNo+1)[0]
             if (value <= newValue):
                 value = newValue
                 currentBestAct = a
         return [value, currentBestAct]
-
 
     def minValue(self, state, d, agentNo):
         value = math.inf
@@ -309,7 +338,8 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         value = min(value, self.expectimax(
             state.generateSuccessor(agentNo, actions[random.randint(0, len(actions)-1)]), d, agentNo+1)[0])
         return [value]
-    
+
+
 def betterEvaluationFunction(currentGameState):
     """
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
