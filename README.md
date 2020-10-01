@@ -1,4 +1,4 @@
-# TDT4136 - Introduction to Artificial Intelligense 
+# TDT4136 - Introduction to Artificial Intelligence 
 ## Assignement 2 - A*
 Finding the best path using A* 
 
