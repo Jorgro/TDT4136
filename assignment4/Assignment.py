@@ -267,9 +267,9 @@ def print_sudoku_solution(solution):
     print()
     for row in range(9):
         for col in range(9):
-            print(solution['%d-%d' % (row, col)][0]),
+            print(solution['%d-%d' % (row, col)][0], end=" "),
             if col == 2 or col == 5:
-                print('|'),
+                print('|', end=" "),
         print("")
         if row == 2 or row == 5:
             print('------+-------+------')
@@ -277,6 +277,6 @@ def print_sudoku_solution(solution):
 
 #csp = create_map_coloring_csp()
 # print(csp.backtracking_search())
-csp = create_sudoku_csp("hard.txt")
-i = csp.backtracking_search()
-# print_sudoku_solution(i)
+sudoku_hard = create_sudoku_csp("hard.txt")
+result = sudoku_hard.backtracking_search()
+print_sudoku_solution(result)
