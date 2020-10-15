@@ -275,8 +275,31 @@ def print_sudoku_solution(solution):
             print('------+-------+------')
 
 
-#csp = create_map_coloring_csp()
-# print(csp.backtracking_search())
+print("Sudoku soulutions: ")
+print("Easy ")
+sudoku_easy = create_sudoku_csp("easy.txt")
+result = sudoku_easy.backtracking_search()
+print_sudoku_solution(result)
+print("\n \n")
+
+print("Medium: ")
+
+sudoku_medium = create_sudoku_csp("medium.txt")
+result = sudoku_medium.backtracking_search()
+print_sudoku_solution(result)
+
+print("\n \n")
+
+print("Hard: ")
+
 sudoku_hard = create_sudoku_csp("hard.txt")
 result = sudoku_hard.backtracking_search()
+print_sudoku_solution(result)
+
+print("\n \n")
+
+print("Very hard: ")
+
+sudoku_veryhard = create_sudoku_csp("veryhard.txt")
+result = sudoku_veryhard.backtracking_search()
 print_sudoku_solution(result)
