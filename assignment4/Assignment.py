@@ -118,7 +118,7 @@ class CSP:
         for i in assignment.values():
             if len(i) != 1:
                 solution = False
-        if solution:
+        if solution:  # Prints the number of iterations and failures, and return the solution.
             print("Iterations: ", self.iterations)
             print("Fails: ", self.fails)
             return assignment
@@ -141,6 +141,7 @@ class CSP:
 
             if consistent:
                 assignment_copy[var] = [val]
+                # use AC-3 for invference:
                 inferences = self.inference(
                     assignment_copy, self.get_all_neighboring_arcs(var))
                 if inferences:
@@ -175,10 +176,10 @@ class CSP:
         is the initial queue of arcs that should be visited.
         """
         while queue:
-            pair = queue.pop(0)
+            pair = queue.pop(0)  # get the next pair from the queue
             i, j = pair[0], pair[1]
             if self.revise(assignment, i, j):
-                if not assignment[i]:
+                if not assignment[i]:  # return False if the domain is empty
                     return False
                 for k, _ in self.get_all_neighboring_arcs(i):
                     if k != j:
